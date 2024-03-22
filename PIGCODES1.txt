@@ -1,0 +1,50 @@
+divs = LOAD '/home/saleha/stateuser.csv' USING PigStorage(',') AS (destination,name,user,state); 
+
+data = LOAD '/home/saleha/su2.csv' USING PigStorage(',') AS (destination,name,user,address,open,close);
+
+store divs into '/home/saleha/stateuser1.csv';
+ 
+B = foreach divs generate user, name; 
+
+startswithM = filter divs by name matches 'M*'; 
+
+f = filter divs by name matches 'c.*';
+
+group divs by state;
+dump grp
+
+cnt = foreach grp generate group, COUNT(divs.state);
+
+o = order divs by destination;
+dump o;
+
+
+
+###JOINS
+
+j= join divs by (destination,name), data by (destination,name);
+dump j;
+
+a = join divs by (destination) left outer, data by(destination);  
+dump a;
+
+ b = join divs by (destination) right outer, data by(destination); 
+ dump b;
+
+first10 = limit divs 10;
+dump first10;
+
+
+
+###TOKENIZATION, FLATTENING, WORDCOUNT
+
+A = LOAD '/home/saleha/sa.txt' USING PigStorage(',') AS (a1:chararray) ;
+dump A;
+B = FOREACH A GENERATE FLATTEN(TOKENIZE(a1,' ')) AS word; 
+dump B;
+wordcnt= group B by word; 
+dump wordcnt;
+wordcount= foreach wordcnt generate group, COUNT(B); 
+dump wordcount;       
+
+ a = load '/home/saleha/OnlineRetail - OnlineRetail.csv' USING PigStorage(',') AS (invoiceno,stockcode,description,quantity,invoicedate,unitprice,customer,country);
