@@ -1,0 +1,96 @@
+hive
+
+CREATE TABLE audit_log (
+    audit_date STRING,
+    audit_time STRING,
+    auditor_id STRING,
+    auditor_signatory STRING,
+    audit_observation STRING,
+    audit_category STRING,
+    audit_severity INT,
+    audit_status STRING
+);
+
+CREATE TABLE auditor_details (
+    auditor_id STRING,
+    auditor_name STRING,
+    auditor_designation STRING,
+    auditor_phone STRING,
+    auditor_supervisor_id STRING
+);
+
+LOAD DATA LOCAL INPATH '/home/ubuntu/Audit_log_Data.csv' INTO TABLE audit_log;
+LOAD DATA LOCAL INPATH '/home/ubuntu/Auditor.csv' INTO TABLE auditor_details;
+
+SELECT a.auditor_id, a.auditor_name
+FROM auditor_details a
+LEFT JOIN audit_log b ON a.auditor_id = b.auditor_id
+WHERE b.auditor_id IS NULL;
+
+SELECT audit_category, audit_severity, COUNT(*) AS observation_count
+FROM audit_log
+GROUP BY audit_category, audit_severity;
+
+SELECT a.audit_date, a.audit_observation, b.auditor_name AS auditor_name, c.auditor_name AS auditor_supervisor_name
+FROM audit_log a
+JOIN auditor_details b ON a.auditor_id = b.auditor_id
+JOIN auditor_details c ON b.auditor_supervisor_id = c.auditor_id
+WHERE a.audit_status = 'CLOSE';
+
+SELECT a.*
+FROM audit_log a
+JOIN auditor_details b ON a.auditor_id = b.auditor_id
+WHERE b.auditor_name LIKE '%AK%' OR b.auditor_name LIKE '%MAK%';
+
+pig pracs
+
+flight_data = LOAD '/home/ubuntu/flight_Data.csv' USING PigStorage(',') AS (
+year,
+month,
+day,
+day_of_week,    
+airline,
+flight_number,
+tail_number,
+origin_airport,
+destination_airport,
+scheduled_departure,
+departure_time,
+departure_delay,
+taxi_out,
+wheels_off,
+scheduled_time,
+elapsed_time,
+air_time,
+distance,
+wheels_on,
+taxi_in,
+scheduled_arrival,
+arrival_time,
+arrival_delay,
+diverted,
+cancelled,
+cancellation_reason,
+air_system_delay,
+security_delay,
+airline_delay,
+late_aircraft_delay,
+weather_delay
+);
+
+day_5_flights = FILTER flight_data BY day_of_week == 5;
+day_5_flight_info = FOREACH day_5_flights GENERATE airline, flight_number, origin_airport, destination_airport;
+
+nb_jb_flights = FILTER flight_data BY flight_number matches '.*NB.*|.*JB.*';
+
+flight_count_by_source = FOREACH (GROUP flight_data BY origin_airport) GENERATE group AS origin_airport, COUNT(flight_data) AS flight_count;
+
+early_departures = FILTER flight_data BY departure_delay < 0;
+
+
+
+
+
+
+
+

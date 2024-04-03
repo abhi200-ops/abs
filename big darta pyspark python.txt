@@ -1,0 +1,57 @@
+lines = sc.textFile("file:///home/ubuntu/spark/README.md")
+lines.count()
+lines.first()
+
+mylines = lines.filter(lambda perline: "apache" in perline)
+mylines.count()
+
+myscalaline = lines.filter(lambda perline:"scala" in perline)
+scapache = myscalaline.union(mylines)
+scapache.collect()
+
+nums = sc.parallelize([1, 2, 3, 4])
+squared = nums.map(lambda x: x * x).collect()
+for num in squared:print("%i" % num)
+
+lines = sc.textFile("file:///home/ubuntu/spark/README.md")
+lines.count()
+
+words = lines.flatMap(lambda line: line.split(" "))
+words.first()
+
+nums = sc.parallelize([1, 2, 3, 4])
+sumCount = nums.aggregate((0, 0),(lambda acc, value: (acc[0] + value, acc[1] + 1)), (lambda acc1, acc2: (acc1[0] + acc2[0], acc1[1] + acc2[1])))
+result = sumCount[0] / float(sumCount[1])
+print("The average is:", result)
+
+words = lines.flatMap(lambda line: line.split(" "))
+words.first()
+
+
+SQL
+
+from pyspark.sql import SparkSession
+
+spark = SparkSession \
+    .builder \
+    .appName("Python Spark SQL basic example") \
+    .config("spark.some.config.option", "some-value") \
+    .getOrCreate()
+df = spark.read.json("file:///home/ubuntu/spark/examples/src/main/resources/people.json")
+df.show()
+
+df.printSchema()
+df.select("name").show()
+df.select(df['name'], df['age'] + 1).show()
+df.filter(df['age'] > 21).show()
+df.groupBy("age").count().show()
+df.createOrReplaceTempView("people")
+
+sqlDF = spark.sql("SELECT * FROM people")
+sqlDF.show()
+df.createGlobalTempView("people")
+spark.sql("SELECT * FROM global_temp.people").show()
+spark.newSession().sql("SELECT * FROM global_temp.people").show()
+
+
+link of sql=https://spark.apache.org/docs/latest/sql-getting-started.html#running-sql-queries-programmatically

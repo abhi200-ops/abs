@@ -1,0 +1,88 @@
+Installation of Spark Website reference:
+    https://sparkbyexamples.com/spark/spark-installation-on-linux-ubuntu/
+    This site can be used as a reference 
+     Follow the below steps to do the installation in your ubuntu OS
+    
+2. To get the latest download, refer to Apache website
+	https://spark.apache.org/downloads.html
+    Current Stable version is below:
+	https://dlcdn.apache.org/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.tgz
+3. In the first step of installation , we can use the above download link. This command will download the installer for hbase.
+
+    wget https://dlcdn.apache.org/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.tgz
+
+4. Once you download spark, you can see the spark installer spark-3.5.1-bin-hadoop3.tgz 
+
+5. Extract the installer to a folder, using tar command.
+	tar -xzf spark-3.5.1-bin-hadoop3.tgz
+    On execution, a folder containing the extracted files will be created. 
+    In my case it is  spark-3.5.1-bin-hadoop3
+
+6. Move the content of this folder to shorter name folder spark.
+     mv spark-3.5.1-bin-hadoop3 spark
+
+7. Now set the environment variables
+    
+    Open the .bashrc file using 
+    sudo nano ~/.bashrc
+
+    Add the two lines in the end  ** Please ensure that the path of your spark folder is proper.
+    export SPARK_HOME=/home/ubuntu/spark
+    export PATH=$PATH:$SPARK_HOME/bin
+
+    Then activate the .bashrc file. 
+    
+    source ~/.bashrc
+
+8. This should setup spark and can be tested by running a small sample example script. 
+   Using Spark-Submit Command to calculate PI value for 15 places by running org.apache.spark.examples.SparkPi    
+   example. You can find spark-submit at $SPARK_HOME/bin directory.
+
+    spark-submit --class org.apache.spark.examples.SparkPi spark/examples/jars/spark-examples_2.12-3.5.1.jar 15 
+   
+   In output, you can see the PI value upto 15 decimals.
+   In case, you get permission denied, you should give access using below command 
+   ** please provide appropriate path of bin folder of spark in your machine setup
+
+    chmod +x /home/ubuntu/spark/bin/*
+
+9. By default Spark installation is for SCALA language. To enable python compatibility, we need to install    
+   pySpark. Next steps help install pyspark.
+
+10.In command prompt type
+   pip install pyspark 
+
+11. on completion, if you type pyspark in command prompt, you will be able to enter spark-shell and can use python scripts to execute spark commands.
+
+12. Once started spark-shell with pyspark, you can also monitor the execution of all your spark commands through a web console at http://localhost:4040/
+
+13. Configuration for Spark specific actions.
+a. Goto conf sub-folder within your spark folder
+   cd /home/user/spark/conf
+b. copy there is a environment config template file. Copy it to a spark-env.sh. 
+   *****Before you execute the cp command check if spark-env.sh file already exists.
+   cp spark-env.sh.template spark-env.sh
+c. Add the below lines in spark-env.sh, This will help initiate java libraries from pyspark.
+   export JAVA_HOME='/usr/lib/jvm/java-8-openjdk-amd64'
+   export PYSPARK_PYTHON=python3.8
+   SPARK_LOCAL_IP="localhost"
+
+For a detailed understanding of the web console refer to the site below 
+https://sparkbyexamples.com/spark/spark-web-ui-understanding/
+
+
+
+
+wget https://dlcdn.apache.org/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.tgz
+tar -xzf spark-3.5.1-bin-hadoop3.tgz
+mv spark-3.5.1-bin-hadoop3 spark
+sudo nano ~/.bashrc
+export SPARK_HOME=/home/ubuntu/spark
+export PATH=$PATH:$SPARK_HOME/bin
+then cntrl S AND cntrl X
+source ~/.bashrc
+spark-submit --class org.apache.spark.examples.SparkPi spark/examples/jars/spark-examples_2.12-3.5.1.jar 15
+sudo apt install python3-pip
+sudo apt-get update
+sudo apt install python3-pip
+pip install pyspark

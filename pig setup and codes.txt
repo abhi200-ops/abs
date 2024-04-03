@@ -1,0 +1,121 @@
+Before installation ensure to check hadoop and java are installed in machine.
+
+1. You can get the latest Pig download from the apache website 
+wget https://downloads.apache.org/pig/pig-0.17.0/pig-0.17.0.tar.gz 
+
+2. using the tar command, unzip the downloaded file
+tar -xvf pig-0.17.0.tar.gz 
+
+3. open the .bashrc file using 
+sudo nano ~/.bashrc
+
+Add the below lines in the same, this is assuming that pig is unzipped in the folder /home/ubuntu/pig-0.17.0.
+
+export PIG_HOME=/home/ubuntu/pig/pig-0.17.0  
+export PATH=$PATH:$PIG_HOME/bin  
+export PIG_CLASSPATH=$HADOOP_HOME/etc/hadoop/
+
+4. Activate .bashrc
+source ~/.bashrc
+
+5. Test pig using 
+pig version
+
+6. Run pig in either modes
+This is the local mode without involving hadoop hdfs
+pig -x local  
+
+This is the mapreduce more involving hadoop hdfs
+pig -x MapReduce
+
+
+
+
+
+Practical Session Flow:
+
+1. Install Pig , Configure and start in local mode
+
+2. Explain Pig is a data flow language (Procedural and not declarative)
+
+3. Architecture of Pig
+
+4. PigLatin Scripting language to execute the scripts.
+
+5. Basic of PigLatin
+a. Supports Scalar (int, long, double) and Complex (tuple, map and bag) data types.
+
+b. Deep dive into the three complex data types --- Refer to pdf page 40 --- Complex types in Pig data model
+
+6. Pig Latin basic structs
+a. Comments
+b. Input - Load command
+    Refer to section "Input and Output"  in pdf
+c. Load command with as for schema
+d. Load command with using PigStorage(',')  for showing seperators.
+e. Store command 
+f.  Dump command to view the output
+
+7. Relational Operations in PigLatin  ----- Refer to pdf page 53 ----- Relational operations
+    Page 53:
+    a. generate
+    This will help to extract few columns 
+    b. foreach
+    This is an iterator which goes through each record and operations can be performed for the same.
+    c. using generate with foreach helps get the relevant columns
+    d. use column names, positions using $<position number of the column> or range using dot dot 
+    e. Each foreach returns a tuple.
+    
+8. Relational Operators -- Refer to pdf page 56
+    a. filter : 
+        Allows to select records based on some criteria
+        use of ".*" and "*." for leading and traiiling wildcard:
+        syntax : filter <variable where data is loaded> by not <field name where filter is to be applied> matches 'CM.*';
+        you can also use ==, !=, >,< , is null
+    b. group 
+        Similar to group by clause in SQL but only assimilates all records of 1 key in a bag. No aggregation function required.
+        grpd = group <variable where data is loaded> by <column name by which u want to group>;
+
+    c. Aggregate functions :page 58
+        Most of the aggregate functions are supported by pigLatin. 
+        We can run these aggregate function on the data grouped by group command.
+        e.g.
+        cnt = foreach <group variable where grouped data is stored> generate group, COUNT(<variable name>);
+        e.g.
+        daily = load '/home/ubuntu/mytrial/OnlineRetail' using PigStorage(',') as (InvoiceNo,StockCode,Description,Quantity,InvoiceDate,UnitPrice,CustomerID,Country, stock);
+        grpd = group daily by Country;
+        store grpd into 'by_group';
+        
+    d. sorting of data using Order by
+        daily = load '/home/ubuntu/mytrial/OnlineRetail' using PigStorage(',') as (InvoiceNo,StockCode,Description,Quantity,InvoiceDate,UnitPrice,CustomerID,Country, stock);
+        dlyOrdered = order daily by CustomerID 
+        dlyOrdered2 = order daily by CustomerID, Country desc;
+  
+    e. distinct values using distinct. It works on entire row and not each column.
+        uniq = distinct daily;
+        
+    f.  join to combine data from multiple data files. page 61
+        d1 = load 'OnlineRetail.csv' using PigStorage(',') as (InvoiceNo,StockCode,Description,Quantity,InvoiceDate,UnitPrice,CustomerID,Country, stock);
+        d2 = load 'StockDetails.csv' using PigStorage(',') as (StockCode,Description);
+        jnd = join d1 by  StockCode, d2 by StockCode
+        
+        Resultant output bag stores <relation name>::<field name>  where relation name is d1 or d2.
+        Left Outer join
+        jndL = join d1 by StockCode, left outer, d2 by StockCode
+        Right Outer join
+        jndR = join d1 by StockCode, right outer, d2 by StockCode
+        Full outer join
+        jndF = join d1 by StockCode, full outer, d2 by StockCode
+
+        Self Joins:
+        d1 = load 'OnlineRetail.csv' using PigStorage(',') as (InvoiceNo,StockCode,Description,Quantity,InvoiceDate,UnitPrice,CustomerID,Country, stock);
+        d2 = load 'OnlineRetail.csv' using PigStorage(',') as (InvoiceNo,StockCode,Description,Quantity,InvoiceDate,UnitPrice,CustomerID,Country, stock);
+        jndS = join d1 by CustomerID, d2 by CustomerID
+        jndFilter = filter jndS by d1::InvoiceDate < d2::InvoiceDate 
+
+  g.  limit  : To display the output records.
+       first10 = limit d1 10;
+
+
+
+

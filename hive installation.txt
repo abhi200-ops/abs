@@ -1,0 +1,149 @@
+1. Pre-Requisite
+Hadoop HDFS is preinstalled. Reference website : https://dev.to/anujvaghani0/hive-installation-on-wls-mic
+
+2. To get the latest download, refer to Apache website
+	https://downloads.apache.org/hive/hive-3.1.2/apache-hive-3.1.2-bin.tar.gz
+3. In the first step of installation , we can use the above download link. This command will download the installer for hbase.
+
+    wget https://downloads.apache.org/hive/hive-3.1.2/apache-hive-3.1.2-bin.tar.gz
+
+4. Once you download hive, you can extract the files of installer using tar command.
+	tar xzvf apache-hive-3.1.2-bin.tar.gz
+    On execution, a folder containing the extracted files will be created. 
+    In my case it is  apache-hive-3.1.2-bin
+
+5. Add hive home configuration in ~/.bashrc. 
+   sudo nano ~/.bashrc
+
+In this file add below lines for hive home and path
+export HIVE_HOME=home/ubuntu/apache-hive-3.1.2-bin
+export PATH=$PATH:$HIVE_HOME/bin
+
+Activate .bashrc using 
+
+source ~/.bashrc
+
+6. In the hive-config.sh, set hadoop home path.
+ 
+sudo nano $HIVE_HOME/bin/hive-config.sh
+
+export HADOOP_HOME=/home/ubuntu/hadoop/hadoop-3.3.6/
+
+7. In hdfs create a tmp directory for hive warehouse processing and proive access rights
+
+hdfs dfs -mkdir /hivetmp
+
+hdfs dfs -chmod g+w /hivetmp
+
+8. Create the hive warehouse directory in HDFS and grant group permissions
+
+hdfs dfs -mkdir -p /user/hive/warehouse
+hdfs dfs -chmod g+w /user/hive/warehouse
+
+9.Go Hive conf folder
+cd $HIVE_HOME/conf
+
+Copy default template xmls to hive-site.xml
+cp hive-default.xml.template hive-site.xml
+
+To check the file open hive-site.xml in nano editor and close it
+
+10. Initiating the derby metastore database 
+
+$HIVE_HOME/bin/schematool -dbType derby -initSchema
+
+While initiatizing derby, an error of com.ctc.wstx.exc.WstxParsingException: Illegal character entity: expansion character (code 0x8 occurs.
+In hive-site.xml, there is a special character entry, 
+
+In the description --  look in this paragraph for special characters. Remove the same.
+<description>
+     Ensures commands with OVERWRITE (such as INSERT OVERWRITE) acquire Exclusive locks for 
+     transactional tables. This ensures that inserts (w/o overwrite) running concurrently
+     are not hidden by the INSERT OVERWRITE.
+</description>
+
+Re-reun step 10.
+
+11. start hive 
+$HIVE_SITE/bin/hive
+Error in the startup : Caused by: java.net.URISyntaxException: Relative path in absolute URI: ${system:java.io.tmpdir%7D/$%7Bsystem:user.name%7D
+java-net-urisyntaxexception-when-starting-hive
+
+Solution:
+In case of you get an error, add the below entries in hive-site.xml
+
+<property>
+    <name>system:java.io.tmpdir</name>
+    <value>/tmp/hive/java</value>
+  </property>
+  <property>
+    <name>system:user.name</name>
+    <value>${user.name}</value>
+</property>
+
+After saving the file, restart $HIVE_SITE/bin/hive
+
+In case of the error comes related to function nucleus ascii, go to below site for fixing the same.
+https://stackoverflow.com/questions/68414746/what-ist-the-reason-for-the-error-message-error-function-nucleus-ascii-alreaS
+
+
+12. In case of any issue comes with metastore during executing queries, you might want to drop metastore and initiate it again. Note if you have database and tables creation and data load, ensure you have the scripts for the same in notepad to recreate the same..
+
+rm -rf metastore_db/
+
+$HIVE_HOME/bin/schematool -dbType derby -initSchema
+
+
+13. Starting hive and you get the error
+Exception in thread "main" java.lang.RuntimeException: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory /tmp/hive/ubuntu/04ba5ebb-330d-4171-800b-812b3c71a851. Name node is in safe mode.
+The reported blocks 9 has reached the threshold 0.9990 of total blocks 9. The minimum number of live datanodes is not required. In safe mode extension. Safe mode will be turned off automatically in 7 seconds. NamenodeHostName:localhost
+
+Solution :
+https://stackoverflow.com/questions/36964685/unable-to-start-hive-on-master-node-safemode-exception
+
+This is because hdfs is in safemode on, so use below command to make safemode off
+
+hdfs dfsadmin -safemode leave
+
+You would get message hdfs safemode is off.
+
+Then start hive again.
+
+14. Partition dynamic - error while insert specifically 
+Job Submission failed with exception 'java.net.ConnectException(Your endpoint configuration is wrong; For more details see:  http://wiki.apache.org/hadoop/UnsetHostnameOrPort)'
+FAILED: Execution Error, return code 1 from org.apache.hadoop.hive.ql.exec.mr.MapRedTask. Your endpoint configuration is wrong; For more details see:  http://wiki.apache.org/hadoop/UnsetHostnameOrPort
+
+Solution : 
+https://stackoverflow.com/questions/46439306/failed-execution-error-return-code-1-from-org-apache-hadoop-hive-ql-exec-mr-ma
+
+SET hive.auto.convert.join=false
+
+Hive Installation.txt
+Displaying Hive Installation.txt.
+HIVE
+Vasanthi Krishna
+•
+Feb 19
+All, Today's session focused on 
+1. Installation and configuration of Hive with Hadoop HDFS 
+2. Architecture and Execution flow of Hive and its queries.
+3. DDL statements in Hive
+4. Basic select statements in Hive
+5. Internal and External Tables in Hive
+6. Partitioning and Bucketing in Hive Tables.
+
+Attached are the Hive reference content, installation tips text file as well as the sample data leveraged.
+
+Hive Installation.txt
+Text
+
+Hive_Reference.docx
+Word
+
+stateuser.csv
+Comma Separated Values
+Class comments
+
+
+
+Sudo service ssh start
